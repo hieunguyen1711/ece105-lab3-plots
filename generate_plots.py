@@ -28,3 +28,43 @@ def generate_data(seed):
 if __name__ == "__main__":
     ts, a, b = generate_data(1234)
     print(ts.shape, a.shape, b.shape)
+
+
+def plot_scatter(ax, timestamps, sensor_a, sensor_b, *, s=30, cmap='viridis', alpha=0.8):
+    """
+    Draw a scatter plot of two temperature sensors onto an existing Axes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Matplotlib Axes object to modify in place.
+    timestamps : array_like, shape (N,)
+        Time values corresponding to measurements (used for color mapping).
+    sensor_a : array_like, shape (N,)
+        Temperature readings from sensor A (°C).
+    sensor_b : array_like, shape (N,)
+        Temperature readings from sensor B (°C).
+    s : int, optional
+        Marker size for the scatter points (default: 30).
+    cmap : str or Colormap, optional
+        Colormap for coloring points by timestamp (default: 'viridis').
+    alpha : float, optional
+        Marker transparency (default: 0.8).
+
+    Returns
+    -------
+    None
+        The function updates the provided Axes in place and returns None.
+    """
+    import matplotlib.pyplot as _plt
+
+    timestamps = np.asarray(timestamps)
+    sensor_a = np.asarray(sensor_a)
+    sensor_b = np.asarray(sensor_b)
+
+    sc = ax.scatter(sensor_a, sensor_b, c=timestamps, cmap=cmap, s=s, alpha=alpha)
+    _plt.colorbar(sc, ax=ax, label='Time (s)')
+    ax.set_xlabel('Sensor A (°C)')
+    ax.set_ylabel('Sensor B (°C)')
+    ax.set_title('Sensor A vs Sensor B (colored by time)')
+    ax.grid(True, linestyle='--', alpha=0.6)
