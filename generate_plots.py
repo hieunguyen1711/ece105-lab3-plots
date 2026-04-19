@@ -68,3 +68,103 @@ def plot_scatter(ax, timestamps, sensor_a, sensor_b, *, s=30, cmap='viridis', al
     ax.set_ylabel('Sensor B (°C)')
     ax.set_title('Sensor A vs Sensor B (colored by time)')
     ax.grid(True, linestyle='--', alpha=0.6)
+
+
+def plot_histogram(ax, sensor_a, sensor_b, bins=30, density=False, alpha=0.6, colors=("C0", "C1")):
+    """
+    Draw overlaid histograms for two temperature sensors onto an existing Axes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Matplotlib Axes object to modify in place.
+    sensor_a : array_like, shape (N,)
+        Temperature readings from sensor A (°C).
+    sensor_b : array_like, shape (N,)
+        Temperature readings from sensor B (°C).
+    bins : int or sequence, optional
+        Number of bins or explicit bin edges for the histograms (default: 30).
+    density : bool, optional
+        If True, plot probability density instead of counts (default: False).
+    alpha : float, optional
+        Transparency for the histogram bars (default: 0.6).
+    colors : tuple of str, optional
+        Colors for sensor A and sensor B (default: ("C0", "C1")).
+
+    Returns
+    -------
+    None
+        Updates the provided Axes in place and returns None.
+    """
+    sensor_a = np.asarray(sensor_a)
+    sensor_b = np.asarray(sensor_b)
+
+    # Determine bin edges when an integer is provided
+    if isinstance(bins, int):
+        vmin = min(sensor_a.min(), sensor_b.min()) - 1.0
+        vmax = max(sensor_a.max(), sensor_b.max()) + 1.0
+        bins = np.linspace(vmin, vmax, bins)
+
+    ax.hist(sensor_a, bins=bins, alpha=alpha, label="Sensor A", color=colors[0], density=density)
+    ax.hist(sensor_b, bins=bins, alpha=alpha, label="Sensor B", color=colors[1], density=density)
+
+    ax.set_xlabel("Temperature (°C)")
+    ax.set_ylabel("Density" if density else "Count")
+    ax.set_title("Histogram of Sensor Temperatures")
+    ax.legend()
+    ax.grid(axis='y', linestyle='--', alpha=0.5)
+
+
+def main(seed=1234, show=True, save=True):
+    """
+    Generate synthetic data and produce example scatter and histogram plots.
+
+    Parameters
+    ----------
+    seed : int or None, optional
+        Seed passed to generate_data for reproducibility (default=1234).
+    show : bool, optional
+        If True, display the figures with plt.show() (default=True).
+    save : bool, optional
+        If True, save the combined figure to 'sensor_plots.png' (default=True).
+
+    Returns
+    -------
+    None
+        Generates and optionally shows/saves the figures. The function modifies
+        matplotlib state but does not return values.
+    """
+    import matplotlib.pyplot as plt
+
+    # Generate data
+    timestamps, sensor_a, sensor_b = generate_data(seed)
+
+    # Create side-by-side plots: scatter (left) and histogram (right)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Left: scatter colored by time
+    plot_scatter(axes[0], timestamps, sensor_a, sensor_b)
+
+    # Right: overlaid histograms
+    plot_histogram(axes[1], sensor_a, sensor_b, bins=30, density=False)
+
+    plt.tight_layout()
+
+    if save:
+        fig.savefig('sensor_plots.png', dpi=150)
+
+    if show:
+        plt.show()
+
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Generate example sensor plots')
+    parser.add_argument('--seed', type=int, default=1234, help='RNG seed (default: 1234)')
+    parser.add_argument('--no-show', dest='show', action='store_false', help='Do not call plt.show()')
+    parser.add_argument('--no-save', dest='save', action='store_false', help='Do not save the figure')
+    parser.set_defaults(show=True, save=True)
+    args = parser.parse_args()
+
+    main(seed=args.seed, show=args.show, save=args.save)
